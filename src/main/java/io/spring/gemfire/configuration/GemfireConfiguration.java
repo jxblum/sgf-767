@@ -15,25 +15,33 @@
  */
 package io.spring.gemfire.configuration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.data.gemfire.GemfireTemplate;
 import org.springframework.data.gemfire.config.annotation.EnableEntityDefinedRegions;
 import org.springframework.data.gemfire.config.annotation.PeerCacheApplication;
 
+import io.spring.gemfire.domain.Item;
+
 /**
  * @author David Turanski
  */
-@Configuration
-@Profile("worker")
 @PeerCacheApplication
-@EnableEntityDefinedRegions
+@EnableEntityDefinedRegions(basePackageClasses = Item.class)
+@SuppressWarnings("unused")
 public class GemfireConfiguration {
 
 	@Bean
-	public GemfireTemplate gemfireTemplate(org.apache.geode.cache.Region region) {
-		GemfireTemplate template = new GemfireTemplate(region);
-		return template;
+	public GemfireTemplate itemsTemplate(org.apache.geode.cache.Region<Object, Object> region) {
+
+		assertThat(region).isNotNull();
+		assertThat(region.getName()).isEqualTo("Items");
+
+		Item testItem = new Item("testKey".getBytes(), "testItem".getBytes());
+
+		region.put(1L, testItem);
+
+		return new GemfireTemplate(region);
 	}
 }
