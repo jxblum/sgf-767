@@ -1,0 +1,35 @@
+This demonstrates a configuration issue with `spring-data-gemfire`.
+The requirement is for a master application that launches worker nodes as copies of itself with the `worker` profile
+activated. Each worker has a peer cache, but the master node does not require Gemfire resources.
+
+The SDG configuration is basically:
+
+```java
+@Profile("worker")
+@Configuration
+@PeerCacheApplication
+@EnableEntityDefinedRegions
+public class GemfireConfiguration {
+
+    @Bean
+    public GemfireTemplate gemfireTemplate(org.apache.geode.cache.Region region) {
+        GemfireTemplate template = new GemfireTemplate(region);
+        return template;
+    }
+}
+```
+
+The observed behavior is when this class is implicitly or explicitly imported by the Main class, the cache and region
+ do not get created, resulting in `org.springframework.beans.factory.NoSuchBeanDefinitionException: No qualifying
+ bean of type 'org.apache.geode.cache.Region<?, ?>' available`
+
+
+To demonstrate this, activate the `worker` profile in application.properties.
+
+Including the same configuration in the main application class (as an inner class here) works as expected, but this
+should not be required.
+
+To demonstrate this, activate the `works` proflie in application.properties.
+
+
+
